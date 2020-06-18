@@ -1,4 +1,4 @@
-Header header
+float64 stamp
 float64[3] acc
 float64[3] gyro
 float64[4] q
