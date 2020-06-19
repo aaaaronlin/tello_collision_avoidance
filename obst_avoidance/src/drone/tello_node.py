@@ -8,7 +8,7 @@ from std_msgs.msg import String
 class Tello:
 	# Initialization for drone
 	def __init__(self):
-		rospy.init_node('Tello', anonymous=True)
+		rospy.init_node('Tello', anonymous=False)
 		rospy.Subscriber('cmd_vel', Twist, self.__send_cmd)
 		rospy.Subscriber('cmd_action', String, self.__action)
 		self.pub_tel = rospy.Publisher('telemetry', telemetry, queue_size=1)
@@ -17,8 +17,6 @@ class Tello:
 		self.port = rospy.get_param('drone_port')
 		# connect to various ports
 		self.tello = tellopy.Tello()
-		#self.tello.subscribe(self.tello.EVENT_FLIGHT_DATA, self.pub_telemetry)
-		self.tello.subscribe(self.tello.EVENT_LOG_DATA, self.pub_telemetry)
 
 	def __action(self, msg):
 		if msg.data == "connect":
@@ -36,7 +34,9 @@ class Tello:
 	def __connect(self):
 		self.tello.connect()
 		self.tello.wait_for_connection(60.0)
-
+		#self.tello.subscribe(self.tello.EVENT_FLIGHT_DATA, self.pub_telemetry)
+		self.tello.subscribe(self.tello.EVENT_LOG_DATA, self.pub_telemetry)
+		
 	# disconnect from socket
 	def __disconnect(self):
 		self.tello.quit()
