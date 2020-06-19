@@ -41,13 +41,14 @@ class Tello:
 	def __disconnect(self):
 		self.tello.quit()
 
-	# land tello
+	# land prompt
 	def __land(self):
 		self.tello.land()
 
+	# takeoff prompt
 	def __takeoff(self):
 		self.tello.takeoff()
-		
+
 	# send command to drone
 	def __send_cmd(self, msg):
 		tello.set_roll(msg.linear.y)
@@ -62,10 +63,10 @@ class Tello:
 			# matches telemetry.msg with corrections from Tello output
 			with data.imu as d:
 				msg.stamp = rospy.Time.now()
-				msg.acc = 9.81*[d.acc_x -d.acc_y -d.acc_z]
-				msg.gyro = [d.gyro_x d.gyro_y d.gyro_z]
-				msg.q = [d.q0 d.q1 d.q2 d.q3]
-				msg.vel = [d.vg_x d.vg_y -d.vg_z]
+				msg.acc = 9.81*[d.acc_x, -d.acc_y, -d.acc_z]
+				msg.gyro = [d.gyro_x, d.gyro_y, d.gyro_z]
+				msg.q = [d.q0, d.q1, d.q2, d.q3]
+				msg.vel = [d.vg_x, d.vg_y, -d.vg_z]
 			self.pub_tel.publish(msg)
 
 if __name__ == '__main__':

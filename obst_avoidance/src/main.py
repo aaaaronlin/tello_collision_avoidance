@@ -4,13 +4,10 @@ import rospy
 
 class MainLoop():
 	def __init__(self):
+		rospy.init_node('Main', anonymous=True)
 		self.pub_act = rospy.Publisher('cmd_action', String, queue_size=1)
 
-	def beginFlight(self):
-		self.__publishAction("connect")
-		self.__publishAction("takeoff")
-
-	def __publishAction(self, action)
+	def send_cmd(self, action):
 		msg = String()
 		msg.data = action
 		self.pub_act.publish(msg)
@@ -20,6 +17,12 @@ if __name__ == '__main__':
 
     main = MainLoop()
 
-    mainLoop.beginFlight()
+    main.send_cmd("connect")
+
+    main.send_cmd("takeoff")
+
+    rospy.sleep(5.0)
+
+    main.send_cmd("land")
 
     rospy.spin()

@@ -1,10 +1,10 @@
 <launch>
 
     <!-- Drone Communication Protocol -->
-    <param name="drone_ip"	type="string"	value="192.168.0.1">
-    <param name="drone_port"	type="string"	value="8889">
+    <param name="drone_ip"	type="string"	value="192.168.0.1" />
+    <param name="drone_port"	type="string"	value="8889" />
 
-    <node name="run_main" pkg="obst_avoidance" type="main.py" output="screen">
-    <node name="run_drone_node" pkg="obst_avoidance" type="tello.py" output="screen">
+    <node name="run_main" pkg="obst_avoidance" type="main.py" output="screen" />
+    <node name="run_drone_node" pkg="obst_avoidance" type="tello_node.py" output="screen" />
 
 </launch>
