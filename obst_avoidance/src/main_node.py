@@ -27,7 +27,9 @@ if __name__ == '__main__':
 
     main = MainLoop()
 
-    # main.send_act("connect")
+    rospy.sleep(2)
+
+    main.send_act("connect")
 
     # main.send_act("takeoff")
 
