@@ -77,11 +77,11 @@ class Sensor_System():
 
         self.rate = s1.get_timing()/1000000.00
 
-    def curr_dist(self):
+    def poll_meas(self):
         return [self.s1.get_distance(), self.s2.get_distance()] # in mm
 
     def end(self):
-        tof1.stop_ranging()
+        self.s1.stop_ranging()
         GPIO.output(sensor2_shutdown, GPIO.LOW)
-        tof.stop_ranging()
+        self.s2.stop_ranging()
         GPIO.output(sensor1_shutdown, GPIO.LOW)
