@@ -7,21 +7,18 @@ Source repository for controlling Wifi Drones with a Raspberry Pi Zero W running
 
 On Raspberry Pi:
 
-```
-pip install tellopy
+VL53L0x Python Library: https://github.com/johnbryanmoore/VL53L0X_rasp_python
+
+PyBluez: https://github.com/pybluez/pybluez/wiki/Installation-on-Raspberry-Pi-3
 
 
-sudo apt-get install build-essential python-dev
 
-cd your_git_directory
+On Linux PC:
 
-git clone https://github.com/johnbryanmoore/VL53L0X_rasp_python.git
+ROS Kinetic: http://wiki.ros.org/kinetic/Installation/Ubuntu
 
-cd VL53L0X_rasp_python
+Tellopy (build from source): https://github.com/hanyazou/TelloPy
 
-make
-
-```
 
 
 ## Building The Repository

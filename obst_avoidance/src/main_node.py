@@ -20,21 +20,23 @@ class MainLoop():
 		msg.linear.y = data[1]
 		msg.linear.z = data[2]
 		msg.angular.z = data[3]
-		self.pub_vel(data)
+		self.pub_vel.publish(data)
 
 
 if __name__ == '__main__':
+	main = MainLoop()
 
-    main = MainLoop()
+	rospy.sleep(0.5)
 
-    rospy.sleep(2)
+	main.send_act("connect")
 
-    main.send_act("connect")
+	# main.send_act("takeoff")
 
-    # main.send_act("takeoff")
+	rospy.sleep(5.0)
 
-    # rospy.sleep(5.0)
+	# main.send_act("land")
 
-    # main.send_act("land")
+	main.send_act("disconnect")
 
-    rospy.spin()
+	rospy.spin()
+
