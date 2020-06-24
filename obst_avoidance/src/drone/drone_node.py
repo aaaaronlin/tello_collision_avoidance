@@ -20,43 +20,44 @@ class Drone_Node:
 
 		# Initialize low-level drone driver located in tello.py
 		# Tellopy library is used for simplicity
-		self.drone = Tello(self.drone_ip, self.drone_port)
+		self.d = Tello(self.drone_ip, self.drone_port)
 
 	# string commands for actions that may be provided by drone API
 	# should correspond to a series of functions in drone driver file e.g. tello.py
 	# callback for cmd_action topic (std_msgs/String)
 	def __action(self, msg):
 		if msg.data == "connect":
-			self.drone.connect()
+			self.d.drone_connect()
 		elif msg.data == "disconnect":
-			self.drone.disconnect()
+			self.d.drone_disconnect()
 		elif msg.data == "land":
-			self.drone.land()
+			self.d.drone_land()
 		elif msg.data == "takeoff":
-			self.drone.takeoff()
+			self.d.drone_takeoff()
 		else:
 			print("Invalid Action")
 
 	# send command to drone
 	# callback from cmd_vel topic (geometry_msgs/Twist message)
 	def __send_cmd(self, msg):
-		self.drone.cmd_vel([msg.linear.y, msg.linear.x, msg.angular.z, msg.linear.z])
+		self.d.cmd_vel([msg.linear.y, msg.linear.x, msg.angular.z, msg.linear.z])
 
 	# publish telemetry.msg located in /msg
 	def pub_telemetry(self):
 		msg = telemetry()
 		# corrections located in driver
 		msg.stamp = rospy.Time.now()
-		msg.acc = self.drone.acc
-		msg.gyro = self.drone.gyro
-		msg.q = self.drone.q
-		msg.vel = self.drone.vel
+		msg.acc = self.d.acc
+		msg.gyro = self.d.gyro
+		msg.q = self.d.q
+		msg.vel = self.d.vel
 		self.pub_tel.publish(msg)
 
 if __name__ == '__main__':
 	d = Drone_Node()
 
 	# rate to publish telemetry
+
 	r = rospy.Rate(10)  # Hz
 
 	while not rospy.is_shutdown():

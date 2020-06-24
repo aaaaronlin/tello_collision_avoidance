@@ -26,15 +26,19 @@ class MainLoop():
 if __name__ == '__main__':
 	main = MainLoop()
 
-	rospy.sleep(0.5)
+	rospy.sleep(2)
 
 	main.send_act("connect")
 
-	# main.send_act("takeoff")
-
 	rospy.sleep(5.0)
 
-	# main.send_act("land")
+	main.send_act("takeoff")
+
+	rospy.sleep(10.0)
+
+	main.send_act("land")
+
+	rospy.sleep(10.0)
 
 	main.send_act("disconnect")
 

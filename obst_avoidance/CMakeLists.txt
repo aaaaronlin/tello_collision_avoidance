@@ -51,6 +51,7 @@ catkin_python_setup()
 add_message_files(
    FILES
    telemetry.msg
+   sensor_meas.msg
 )
 
 ## Generate services in the 'srv' folder
