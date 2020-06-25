@@ -26,16 +26,22 @@ class Drone_Node:
 	# should correspond to a series of functions in drone driver file e.g. tello.py
 	# callback for cmd_action topic (std_msgs/String)
 	def __action(self, msg):
-		if msg.data == "connect":
-			self.d.drone_connect()
-		elif msg.data == "disconnect":
-			self.d.drone_disconnect()
-		elif msg.data == "land":
-			self.d.drone_land()
-		elif msg.data == "takeoff":
-			self.d.drone_takeoff()
+		if self.d.state == self.d.STATE_CONNECTED:
+			if msg.data == "land":
+				self.d.drone_land()
+			elif msg.data == "takeoff":
+				self.d.drone_takeoff()
+			else:
+				print("Invalid Action.")
+		elif self.d.state != self.d.STATE_QUIT:
+			if msg.data == "connect":
+				self.d.drone_connect()
+			elif msg.data == "disconnect":
+				self.d.drone_disconnect()
+			else:
+				print("Invalid Action.")
 		else:
-			print("Invalid Action")
+			print("Invalid Action.")
 
 	# send command to drone
 	# callback from cmd_vel topic (geometry_msgs/Twist message)
@@ -46,23 +52,45 @@ class Drone_Node:
 	def pub_telemetry(self):
 		msg = telemetry()
 		# corrections located in driver
-		msg.stamp = rospy.Time.now()
+		msg.header.stamp = rospy.Time.now()
 		msg.acc = self.d.acc
 		msg.gyro = self.d.gyro
 		msg.q = self.d.q
 		msg.vel = self.d.vel
-		self.pub_tel.publish(msg)
+		try:
+			self.pub_tel.publish(msg)
+		except Exception as e:
+			print(e)
+			return
+
+	def emergency_land(self):
+		self.d.drone_land()
+		rospy.sleep(0.5)
+		self.d.drone_disconnect()
 
 if __name__ == '__main__':
-	d = Drone_Node()
+	dn = Drone_Node()
 
-	# rate to publish telemetry
+	# maximum rate to publish telemetry
+	# Tello ~10-15 Hz
 
-	r = rospy.Rate(10)  # Hz
+	r = rospy.Rate(100)  # Hz
 
 	while not rospy.is_shutdown():
+		# make sure drone is connected and new data has arrived before publishing anything
+		if dn.d.state == dn.d.STATE_CONNECTED and dn.d.new_data:
+			# publish telemetry
+			dn.pub_telemetry()
+			# await next data update
+			dn.d.toggle_new_data()
 
-		d.pub_telemetry()
+		# shutdown this node if drone flight has been quit
+		if dn.d.state == dn.d.STATE_QUIT:
+			rospy.signal_shutdown("Drone Disconnected.")
 
-		rospy.spin()
+		r.sleep()
+
+	# emergency land in case drone is still in flight
+	if dn.d.state != dn.d.STATE_QUIT:
+		dn.emergency_land()
 
