@@ -4,7 +4,6 @@ from obst_avoidance.msg import sensor_meas
 from std_msgs.msg import String
 import bluetooth
 
-
 # B8:27:EB:7D:75:63 raspberry pi
 # 94:E9:79:E6:E1:90 pc
 
@@ -20,10 +19,13 @@ class Sensor_Node():
         self.size = 1024
         self.sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
 
-        self.listening = False
+        self.connected = False
 
     # connect to port and listen for
     def connect(self):
+        if self.connected:
+            return
+        # try to listen to bluetooth socket
         try:
             self.sock.bind(('', self.port))
             self.sock.listen(self.backlog)
@@ -32,10 +34,13 @@ class Sensor_Node():
             print(e)
             return
 
-        self.listening = True
+        self.connected = True
 
     # disconnect client and close socket
     def disconnect(self):
+        if not self.connected:
+            return
+        # try to close socket, if still listening
         try:
             self.sock.close()
 
@@ -43,7 +48,7 @@ class Sensor_Node():
             print(e)
             return
 
-        self.listening = False
+        self.connected = False
 
     def __action(self, msg):
         print(msg.data)
@@ -55,16 +60,25 @@ if __name__ == '__main__':
     s.connect()
 
     client = None
+    client_created = False
 
     while not rospy.is_shutdown():
-        # hangs until a message comes in
+        # try to publish message from rpi
         try:
-            client, clientInfo = s.sock.accept()
-
+            # create client once
+            if not client_created:
+                client, clientInfo = s.sock.accept()
+                client_created = True
+                print("Sensors Connected.")
+            # receive data
             data = client.recv(s.size)
             if data:
-                print(data)
-        except:
+                d = [int(i) for i in data.split(',')]
+                msg = sensor_meas()
+                msg.meas = d
+                s.pub_meas.publish(msg)
+        except Exception as e:
+            print("BT Error: " + str(e))
             break
 
     if client is not None:

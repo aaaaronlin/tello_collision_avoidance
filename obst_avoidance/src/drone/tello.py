@@ -40,7 +40,7 @@ class Tello(tello.Tello):
             self.acc = [9.81 * d[6], -9.81 * d[7], -9.81 * d[8]]
             self.gyro = [d[9], d[10], d[11]]
             self.q = [d[12], d[13], d[14], d[15]]
-            self.vel = [d[16], d[17], d[18]]
+            self.vel = [d[16], d[17], -d[18]]
 
             self.new_data = True
 
@@ -65,6 +65,8 @@ class Tello(tello.Tello):
             print (e)
             print('ERROR: Could not find drone!')
             self.quit()
+            return
+        print("Drone Connected.")
 
     # disconnect from socket
     def drone_disconnect(self):

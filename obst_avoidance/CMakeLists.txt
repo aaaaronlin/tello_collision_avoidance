@@ -52,6 +52,7 @@ add_message_files(
    FILES
    telemetry.msg
    sensor_meas.msg
+   estimate.msg
 )
 
 ## Generate services in the 'srv' folder

@@ -26,20 +26,17 @@ class Drone_Node:
 	# should correspond to a series of functions in drone driver file e.g. tello.py
 	# callback for cmd_action topic (std_msgs/String)
 	def __action(self, msg):
-		if self.d.state == self.d.STATE_CONNECTED:
-			if msg.data == "land":
-				self.d.drone_land()
-			elif msg.data == "takeoff":
-				self.d.drone_takeoff()
-			else:
-				print("Invalid Action.")
-		elif self.d.state != self.d.STATE_QUIT:
-			if msg.data == "connect":
-				self.d.drone_connect()
-			elif msg.data == "disconnect":
-				self.d.drone_disconnect()
-			else:
-				print("Invalid Action.")
+		if msg.data == "land":
+			self.d.drone_land()
+		elif msg.data == "takeoff":
+			self.d.drone_takeoff()
+		elif msg.data == "connect":
+			self.d.drone_connect()
+		elif msg.data == "disconnect":
+			# make sure drone lands before disconnecting
+			# cannot reconnect until new flight
+			self.d.drone_land()
+			self.d.drone_disconnect()
 		else:
 			print("Invalid Action.")
 
@@ -60,7 +57,7 @@ class Drone_Node:
 		try:
 			self.pub_tel.publish(msg)
 		except Exception as e:
-			print(e)
+			print("Telemetry Error:" + str(e))
 			return
 
 	def emergency_land(self):
@@ -74,7 +71,7 @@ if __name__ == '__main__':
 	# maximum rate to publish telemetry
 	# Tello ~10-15 Hz
 
-	r = rospy.Rate(100)  # Hz
+	r = rospy.Rate(50)  # Hz
 
 	while not rospy.is_shutdown():
 		# make sure drone is connected and new data has arrived before publishing anything
@@ -91,6 +88,7 @@ if __name__ == '__main__':
 		r.sleep()
 
 	# emergency land in case drone is still in flight
+	# allows for ctrl+c land
 	if dn.d.state != dn.d.STATE_QUIT:
 		dn.emergency_land()
 
