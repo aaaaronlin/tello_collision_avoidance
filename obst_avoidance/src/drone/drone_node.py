@@ -81,10 +81,6 @@ if __name__ == '__main__':
 			# await next data update
 			dn.d.toggle_new_data()
 
-		# shutdown this node if drone flight has been quit
-		if dn.d.state == dn.d.STATE_QUIT:
-			rospy.signal_shutdown("Drone Disconnected.")
-
 		r.sleep()
 
 	# emergency land in case drone is still in flight

@@ -3,9 +3,9 @@ import rospy
 from geometry_msgs.msg import Twist
 from std_msgs.msg import String
 from obst_avoidance.msg import estimate, sensor_meas, telemetry
-from estimator.kalman import KalmanFilter
+from estimator.kalman import SimpleKalmanFilter, KalmanFilter
 
-class MainLoop:
+class Main_Node:
     def __init__(self):
         rospy.init_node('Main', anonymous=False)
         self.pub_act = rospy.Publisher('cmd_action', String, queue_size=1)
@@ -17,8 +17,9 @@ class MainLoop:
         rospy.Subscriber('sensor_meas', sensor_meas, self.update)
 
         self.avoid_status = True
-        self.flight_status = False
+        self.flight_status = True
 
+        self.SKF = SimpleKalmanFilter()
         self.KF = KalmanFilter()
 
     def send_drone_act(self, action):
@@ -40,31 +41,44 @@ class MainLoop:
         self.pub_vel.publish(data)
 
     def predict(self, msg):
-        self.KF.predict(0.1, msg.vel[1], msg.vel[2])
+        # don't need feedback yet
+        x, p = self.SKF.predict()
+
+        est_msg = estimate()
+        est_msg.dist[0] = x
+        est_msg.covariance[0] = p
+        self.pub_est.publish(est_msg)
 
     def update(self, msg):
-        self.KF.update_with_measurement(0.1, msg.meas[0])
+        x, p, k = self.SKF.update_with_measurement(msg.meas[0])
 
+        est_msg = estimate()
+        est_msg.dist[0] = x
+        est_msg.covariance[0] = p
+        est_msg.k = k
+        self.pub_est.publish(est_msg)
 
 if __name__ == '__main__':
 
-    main = MainLoop()
+        main = Main_Node()
 
-    rospy.sleep(2)
+        rospy.sleep(2)
 
-    main.send_drone_act("connect")
+        main.send_drone_act("connect")
 
-    rospy.sleep(5.0)
+        main.send_rpi_cmd("connect")
 
-    main.send_drone_act("takeoff")
+        rospy.sleep(5.0)
 
-    while not rospy.is_shutdown():
+        #main.send_drone_act("takeoff")
 
-        rospy.spin()
+        while main.flight_status and not rospy.is_shutdown():
 
-    main.send_drone_act("land")
+            rospy.spin()
 
-    rospy.sleep(5.0)
+        #main.send_drone_act("land")
 
-    main.send_drone_act("disconnect")
+        rospy.sleep(5.0)
+
+        main.send_drone_act("disconnect")
 

@@ -51,7 +51,7 @@ class Sensor_Node():
         self.connected = False
 
     def __action(self, msg):
-        print(msg.data)
+        print(msg)
 
 
 if __name__ == '__main__':
@@ -69,8 +69,8 @@ if __name__ == '__main__':
             if not client_created:
                 client, clientInfo = s.sock.accept()
                 client_created = True
-                print("Sensors Connected.")
-            # receive data
+                print("Client Created.")
+            # receive data, hangs waiting
             data = client.recv(s.size)
             if data:
                 d = [int(i) for i in data.split(',')]

@@ -18,7 +18,14 @@ sudo apt-get install bluetooth libbluetooth-dev
 
 ```
 
-VL53L0x Python Library: https://github.com/johnbryanmoore/VL53L0X_rasp_python
+VL53L0x Python Library: https://github.com/pimoroni/VL53L0X_rasp_python
+
+
+```
+
+sudo python2 setup.py install
+
+```
 
 PyBluez 0.22: https://github.com/pybluez/pybluez
 (use sudo pip install pybluez==0.22)

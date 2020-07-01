@@ -1,7 +1,7 @@
 <launch>
 
     <!-- General Parameters -->
-    <arg name="record_bag"      default="true" />
+    <arg name="record_bag"      default="false" />
     <arg name="bag_path"      default="$(find obst_avoidance)/bag/" />
 
     <!-- Drone WiFi UDP -->
@@ -16,7 +16,7 @@
     <node name="sensor" pkg="obst_avoidance" type="sensor_node.py" output="screen" />
 
     <group if="$(arg record_bag)">
-    	<node pkg="rosbag" type="record" name="record" args="-o $(arg bag_path) /cmd_vel /cmd_action /telemetry /sensor_meas" />
+    	<node pkg="rosbag" type="record" name="record" args="-o $(arg bag_path) /cmd_vel /cmd_rpi /cmd_action /telemetry /sensor_meas" />
     </group>
 
 </launch>
