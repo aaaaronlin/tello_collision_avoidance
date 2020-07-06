@@ -16,7 +16,7 @@
     <node name="sensor" pkg="obst_avoidance" type="sensor_node.py" output="screen" />
 
     <group if="$(arg record_bag)">
-    	<node pkg="rosbag" type="record" name="record" args="-o $(arg bag_path) /cmd_vel /cmd_rpi /cmd_action /telemetry /sensor_meas" />
+    	<node pkg="rosbag" type="record" name="record" args="-o $(arg bag_path) /cmd_vel /cmd_board /cmd_action /telemetry /sensor_meas /est" />
     </group>
 
 </launch>

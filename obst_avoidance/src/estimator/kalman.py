@@ -8,12 +8,13 @@ from numpy.linalg import inv
 # General Class
 class SensorFilter(object):
     def __init__(self):
-        self.rejectMeasVal = 2000
-        self.rejectMeasCount = 0
+        self.rejectMeasMax = 1300  # mm
+        self.rejectMeasMin = 2  # mm
+        self.rejectMeasCountMax = 100
 
     @staticmethod
     def reject_meas(z):
-        if z >= 2000:
+        if z >= 1300:
             return True
 
 # 1D Kalman for a single TOF sensor
@@ -46,7 +47,7 @@ class SimpleKalmanFilter(SensorFilter, object):
             # a series of bad measurements indicates either:
             # changing surfaces or not near any walls
             # if more than 1 sec of bad meas:
-            if self.rejectMeasCount > 100:
+            if self.rejectMeasCount > self.rejectMeasCountMax:
                 self.reset()
                 self.rejectMeasCount = 0
             return

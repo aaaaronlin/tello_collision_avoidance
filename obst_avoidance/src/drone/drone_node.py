@@ -12,7 +12,7 @@ class Drone_Node:
 		rospy.init_node('Drone', anonymous=False)
 		rospy.Subscriber('cmd_vel', Twist, self.__send_cmd)
 		rospy.Subscriber('cmd_action', String, self.__action)
-		self.pub_tel = rospy.Publisher('telemetry', telemetry, queue_size=1)
+		self.pub_tel = rospy.Publisher('telemetry', telemetry, queue_size=0)
 
 		# set drone ip and port from launch file
 		self.drone_ip = rospy.get_param('drone_ip', "192.168.0.1")
@@ -22,21 +22,38 @@ class Drone_Node:
 		# Tellopy library is used for simplicity
 		self.d = Tello(self.drone_ip, self.drone_port)
 
+		self.connected = False
+		self.in_flight = False
+
 	# string commands for actions that may be provided by drone API
 	# should correspond to a series of functions in drone driver file e.g. tello.py
 	# callback for cmd_action topic (std_msgs/String)
 	def __action(self, msg):
 		if msg.data == "land":
 			self.d.drone_land()
+			self.in_flight = False
+
 		elif msg.data == "takeoff":
 			self.d.drone_takeoff()
+			self.in_flight = True
+
 		elif msg.data == "connect":
-			self.d.drone_connect()
+			self.connected = self.d.drone_connect()
+			# if connection fails, shutdown socket and node
+			if not self.connected:
+				self.d.drone_disconnect()
+				rospy.signal_shutdown("No drone.")
+
 		elif msg.data == "disconnect":
 			# make sure drone lands before disconnecting
 			# cannot reconnect until new flight
-			self.d.drone_land()
+			if self.in_flight:
+				self.d.drone_land()
+				self.in_flight = False
+
 			self.d.drone_disconnect()
+			self.connected = False
+
 		else:
 			print("Invalid Action.")
 
@@ -62,8 +79,12 @@ class Drone_Node:
 
 	def emergency_land(self):
 		self.d.drone_land()
+		self.in_flight = False
+
 		rospy.sleep(0.5)
+
 		self.d.drone_disconnect()
+		self.connected = False
 
 if __name__ == '__main__':
 	dn = Drone_Node()
@@ -75,7 +96,7 @@ if __name__ == '__main__':
 
 	while not rospy.is_shutdown():
 		# make sure drone is connected and new data has arrived before publishing anything
-		if dn.d.state == dn.d.STATE_CONNECTED and dn.d.new_data:
+		if dn.connected and dn.d.new_data:
 			# publish telemetry
 			dn.pub_telemetry()
 			# await next data update
@@ -85,6 +106,6 @@ if __name__ == '__main__':
 
 	# emergency land in case drone is still in flight
 	# allows for ctrl+c land
-	if dn.d.state != dn.d.STATE_QUIT:
+	if dn.in_flight and dn.connected:
 		dn.emergency_land()
 

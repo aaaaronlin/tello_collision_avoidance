@@ -61,12 +61,11 @@ class Tello(tello.Tello):
         self.connect()
         try:
             self.wait_for_connection(5.0)
-        except Exception as e:
-            print (e)
+        except:
             print('ERROR: Could not find drone!')
-            self.quit()
-            return
+            return False
         print("Drone Connected.")
+        return True
 
     # disconnect from socket
     def drone_disconnect(self):
