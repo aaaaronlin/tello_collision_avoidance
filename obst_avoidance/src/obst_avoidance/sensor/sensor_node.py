@@ -11,14 +11,14 @@ class Sensor_Node():
     def __init__(self):
         # ROS node and topic setup
         rospy.init_node("Sensor_Node", anonymous=False)
-        rospy.Subscriber("cmd_board", String, self.__action)
-        self.pub_meas = rospy.Publisher('sensor_meas', sensor_meas, queue_size=0)
+        rospy.Subscriber("cmd_sensor", String, self.__action)
+        self.pub_meas = rospy.Publisher('sensor_meas', sensor_meas, queue_size=1)
         # Bluetooth parameters
         self.port = rospy.get_param('bt_port', 3)
         self.backlog = 1
         self.size = 1024
         self.sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-        self.sock.settimeout(5)
+        self.sock.settimeout(rospy.get_param('sensor_timeout', 5.0))
 
         self.bt_on = False
         self.listening = False
@@ -83,10 +83,10 @@ if __name__ == '__main__':
         try:
             # create client once, if not done already
             if not client_created:
-                print("Looking for Board...")
+                print("Looking for Sensor...")
                 client, clientInfo = s.sock.accept()
                 client_created = True
-                print("Board Connected.")
+                print("Sensor Connected.")
             # receive data, hangs waiting
             data = client.recv(s.size)
             if data:

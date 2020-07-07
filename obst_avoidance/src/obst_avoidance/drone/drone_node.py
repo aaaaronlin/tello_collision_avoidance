@@ -12,15 +12,16 @@ class Drone_Node:
 		rospy.init_node('Drone', anonymous=False)
 		rospy.Subscriber('cmd_vel', Twist, self.__send_cmd)
 		rospy.Subscriber('cmd_action', String, self.__action)
-		self.pub_tel = rospy.Publisher('telemetry', telemetry, queue_size=0)
+		self.pub_tel = rospy.Publisher('telemetry', telemetry, queue_size=1)
 
 		# set drone ip and port from launch file
 		self.drone_ip = rospy.get_param('drone_ip', "192.168.0.1")
 		self.drone_port = rospy.get_param('drone_port', 8889)
+		self.drone_timeout = rospy.get_param('drone_timeout', 5.0)
 
 		# Initialize low-level drone driver located in tello.py
 		# Tellopy library is used for simplicity
-		self.d = Tello(self.drone_ip, self.drone_port)
+		self.d = Tello(self.drone_ip, self.drone_port, self.drone_timeout)
 
 		self.connected = False
 		self.in_flight = False

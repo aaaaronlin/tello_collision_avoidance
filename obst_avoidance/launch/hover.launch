@@ -7,16 +7,18 @@
     <!-- Drone WiFi UDP -->
     <param name="drone_ip"	type="string"	value="192.168.0.1" />
     <param name="drone_port"	type="int"	value="8889" />
+    <param name="drone_timeout"	type="double"	value="5.0" />
 
-    <!-- Pi Bluetooth RFCOMM -->
-    <param name="bt_port"	type="int"	value="3" />
+    <!-- Sensor Bluetooth RFCOMM -->
+    <param name="bt_port"		type="int"	value="3" />
+    <param name="sensor_timeout"	type="double"	value="10.0" />
 
     <node name="main" pkg="obst_avoidance" type="main_node.py" output="screen" />
     <node name="drone" pkg="obst_avoidance" type="drone_node.py" output="screen" />
     <node name="sensor" pkg="obst_avoidance" type="sensor_node.py" output="screen" />
 
     <group if="$(arg record_bag)">
-    	<node pkg="rosbag" type="record" name="record" args="-o $(arg bag_path) /cmd_vel /cmd_board /cmd_action /telemetry /sensor_meas /est" />
+    	<node pkg="rosbag" type="record" name="record" args="-o $(arg bag_path) /cmd_vel /cmd_sensor /cmd_action /telemetry /sensor_meas /est" />
     </group>
 
 </launch>

@@ -5,13 +5,14 @@ from std_msgs.msg import String
 from obst_avoidance.msg import estimate, sensor_meas, telemetry
 from estimator.kalman import SimpleKalmanFilter, KalmanFilter
 
+
 class Main_Node:
     def __init__(self):
         rospy.init_node('Main', anonymous=False)
-        self.pub_act = rospy.Publisher('cmd_action', String, queue_size=0)
-        self.pub_vel = rospy.Publisher('cmd_vel', Twist, queue_size=0)
-        self.pub_board = rospy.Publisher('cmd_board', String, queue_size=0)
-        self.pub_est = rospy.Publisher('est', estimate, queue_size=0)
+        self.pub_act = rospy.Publisher('cmd_action', String, queue_size=1)
+        self.pub_vel = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+        self.pub_sensor = rospy.Publisher('cmd_sensor', String, queue_size=1)
+        self.pub_est = rospy.Publisher('est', estimate, queue_size=1)
 
         rospy.Subscriber('telemetry', telemetry, self.predict)
         rospy.Subscriber('sensor_meas', sensor_meas, self.update)
@@ -27,10 +28,10 @@ class Main_Node:
         msg.data = action
         self.pub_act.publish(msg)
 
-    def send_board_cmd(self, action):
+    def send_sensor_cmd(self, action):
         msg = String()
         msg.data = action
-        self.pub_board.publish(msg)
+        self.pub_sensor.publish(msg)
 
     def send_drone_cmd(self, data):
         msg = Twist
@@ -50,7 +51,7 @@ class Main_Node:
         self.pub_est.publish(est_msg)
 
     def update(self, msg):
-        x, p, k = self.SKF.update_with_measurement(msg.meas[0])
+        x, p, k = self.SKF.update_with_measurement(msg.meas[0]*0.001)
 
         est_msg = estimate()
         est_msg.dist[0] = x
@@ -58,32 +59,34 @@ class Main_Node:
         est_msg.k = k
         self.pub_est.publish(est_msg)
 
+
 if __name__ == '__main__':
+    main = Main_Node()
 
-        main = Main_Node()
+    rospy.sleep(2)
 
-        rospy.sleep(2)
+    main.send_drone_act("connect")
 
-        main.send_drone_act("connect")
+    # wait for drone connection timeout
+    rospy.sleep(5)
 
-        # wait for drone connection timeout
-        rospy.sleep(5)
+    main.send_sensor_cmd("connect")
 
-        main.send_board_cmd("connect")
+    main.send_sensor_cmd("start")
 
-        main.send_board_cmd("start")
+    while not rospy.is_shutdown():
+        rospy.spin()
 
-        #main.send_drone_act("takeoff")
+    # main.send_drone_act("takeoff")
 
-        rospy.sleep(30.0)
+    # rospy.sleep(30.0)
 
-        #main.send_drone_act("land")
+    # main.send_drone_act("land")
 
-        rospy.sleep(5.0)
+    # rospy.sleep(5.0)
 
-        main.send_board_cmd("stop")
+    # main.send_sensor_cmd("stop")
 
-        main.send_board_cmd("disconnect")
+    # main.send_sensor_cmd("disconnect")
 
-        main.send_drone_act("disconnect")
-
+    # main.send_drone_act("disconnect")

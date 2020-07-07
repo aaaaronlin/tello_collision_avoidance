@@ -11,6 +11,7 @@ class SensorFilter(object):
         self.rejectMeasMax = 1300  # mm
         self.rejectMeasMin = 2  # mm
         self.rejectMeasCountMax = 100
+        self.rejectMeasCount = 0
 
     @staticmethod
     def reject_meas(z):

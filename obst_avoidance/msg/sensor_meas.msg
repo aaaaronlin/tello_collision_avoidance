@@ -1,2 +1,2 @@
 Header header
-int16[4] meas
+int32[4] meas

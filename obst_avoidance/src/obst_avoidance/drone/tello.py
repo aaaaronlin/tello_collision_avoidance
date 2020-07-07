@@ -10,7 +10,7 @@ import time
 
 class Tello(tello.Tello):
 
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, timeout):
         # init tellopy library
         super(Tello, self).__init__()
 
@@ -27,6 +27,8 @@ class Tello(tello.Tello):
 
         # new data to publish
         self.new_data = False
+
+        self.timeout = timeout
 
 
     # update_state
@@ -60,7 +62,7 @@ class Tello(tello.Tello):
 
         self.connect()
         try:
-            self.wait_for_connection(5.0)
+            self.wait_for_connection(self.timeout)
         except:
             print('ERROR: Could not find drone!')
             return False
