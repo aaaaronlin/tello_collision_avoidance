@@ -8,30 +8,29 @@ from numpy.linalg import inv
 # General Class
 class SensorFilter(object):
     def __init__(self):
-        self.rejectMeasMax = 1300  # mm
-        self.rejectMeasMin = 2  # mm
-        self.rejectMeasCountMax = 100
+        self.rejectMeasCountMax = 50  # ~5 sec of bad measurements
         self.rejectMeasCount = 0
+
+        self.dt = 0.0
 
     @staticmethod
     def reject_meas(z):
-        if z >= 1300:
+        if z >= 2.000 or z < .020:  # 1200 mm and 20 mm bounds
             return True
 
 # 1D Kalman for a single TOF sensor
 class SimpleKalmanFilter(SensorFilter, object):
     def __init__(self):
         super(SimpleKalmanFilter, self).__init__()
-        self.dt = 0
-        self.X = 0
-        self.A = 1
-        self.P = 0
-        self.Q = 0.001
+        self.X = 2.0
+        self.A = 1.0
+        self.P = 0.0
+        self.Q = 0.002
         self.R = 0.005
 
     # reset state estimate and covariance
     def reset(self):
-        self.X = 0
+        self.X = 2.0
         self.P = 0
 
     def predict(self):
@@ -45,13 +44,13 @@ class SimpleKalmanFilter(SensorFilter, object):
         # check for bad measurements i.e. too large in case of VL53L0x
         if self.reject_meas(z):
             self.rejectMeasCount += 1
-            # a series of bad measurements indicates either:
+            # a series of bad measurements usually indicates either:
             # changing surfaces or not near any walls
             # if more than 1 sec of bad meas:
             if self.rejectMeasCount > self.rejectMeasCountMax:
                 self.reset()
                 self.rejectMeasCount = 0
-            return
+            return self.X, self.P, 0
         else:
             self.rejectMeasCount = 0
 
@@ -64,11 +63,11 @@ class SimpleKalmanFilter(SensorFilter, object):
         return self.X, self.P, K
 
 # 4D Kalman incorporating state estimate from IMU
-class KalmanFilter:
+class KalmanFilter(SensorFilter, object):
     def __init__(self):
+        super(KalmanFilter, self).__init__()
         # state
         # [dist_from_wall_x, dist_from_wall_y, vel_x, vel_y]
-        self.dt = 0
         self.X = np.array([0.0, 0.0, 0.0, 0.0]).T
         # create state-transition matrix
         self.A = np.array([[1.0, 0.0, 0.1, 0.0],  # temp dt

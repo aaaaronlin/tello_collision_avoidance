@@ -11,7 +11,7 @@ import time
 class Tello(tello.Tello):
 
     def __init__(self, ip, port, timeout):
-        # init tellopy library
+        # init Tellopy library
         super(Tello, self).__init__()
 
         # not necessary with Tellopy
@@ -86,8 +86,17 @@ class Tello(tello.Tello):
     # Functions for commanding velocities
     #
     # send command
+    def __bound(self, val):
+        if val >= 1.0:
+            return 1.0
+        elif val <= -1.0:
+            return -1.0
+        else:
+            return val
+
     def cmd_vel(self, cmd):
-        self.set_roll(cmd[0])
-        self.set_pitch(cmd[1])
-        self.set_yaw(cmd[2])
-        self.set_throttle(cmd[3])
+        self.set_roll(self.__bound(cmd[0]))
+        self.set_pitch(self.__bound(cmd[1]))
+        self.set_yaw(self.__bound(cmd[2]))
+        self.set_throttle(self.__bound(cmd[3]))
+

@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+import os, sys
+import pickle
+import matplotlib.pyplot as plt
+from kalman import SimpleKalmanFilter
+import numpy as np
+
+mainDir = os.path.split(os.path.split(sys.path[0])[0])[0]
+bagDir = mainDir + '/bag/'
+filename = "inch.pickle"
+
+pickleFile = open(bagDir+filename, 'rb')
+data, fname = pickle.load(pickleFile)
+pickleFile.close()
+
+meas = data['/sensor_meas']
+est = data['/est']
+
+fig = plt.figure()
+
+fig.suptitle(fname)
+n = 4      # num sub-plots
+fig.add_subplot(n, 1, 1)
+for i in range(2, n + 1):
+    fig.add_subplot(n, 1, i, sharex=fig.axes[0])
+
+fig.axes[0].plot(est['t'], est['dist'][:, 0], label='est_dist')
+fig.axes[0].plot(meas['t'], meas['meas'][:, 0]*0.001, label='raw_dist')
+fig.axes[0].legend()
+fig.axes[0].set_ylim([0, 2])
+
+SKF = SimpleKalmanFilter()
+
+x_arr = np.zeros(np.size(meas['meas'], 0))
+p_arr = np.zeros(np.size(meas['meas'], 0))
+k_arr = np.zeros(np.size(meas['meas'], 0))
+for i, m in np.ndenumerate(meas['meas'][:, 0]*0.001):
+    SKF.predict()
+    x, p, k = SKF.update_with_measurement(m)
+    x_arr[i] = x
+    p_arr[i] = p
+    k_arr[i] = k
+
+fig.axes[1].plot(est['t'], est['dist'][:, 0], label='est_dist')
+fig.axes[1].set_ylim([0, 2])
+fig.axes[1].legend()
+
+fig.axes[2].plot(est['t'], est['covariance'][:, 0], label='est_cov')
+fig.axes[2].legend()
+
+fig.axes[3].plot(est['t'], est['k'], label='est_k')
+fig.axes[3].legend()
+
+plt.show()

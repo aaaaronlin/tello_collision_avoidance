@@ -8,8 +8,7 @@ from std_msgs.msg import String
 # A general ROS Node for communicating with a WiFi drone
 class Drone_Node:
 	def __init__(self):
-		# Setup ROS node and drone topics (commands and telemetry)
-		rospy.init_node('Drone', anonymous=False)
+		# Setup drone topics (commands and telemetry)
 		rospy.Subscriber('cmd_vel', Twist, self.__send_cmd)
 		rospy.Subscriber('cmd_action', String, self.__action)
 		self.pub_tel = rospy.Publisher('telemetry', telemetry, queue_size=1)
@@ -88,6 +87,7 @@ class Drone_Node:
 		self.connected = False
 
 if __name__ == '__main__':
+	rospy.init_node('Drone', anonymous=False)
 	dn = Drone_Node()
 
 	# maximum rate to publish telemetry

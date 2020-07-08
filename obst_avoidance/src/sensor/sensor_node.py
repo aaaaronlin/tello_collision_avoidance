@@ -9,8 +9,7 @@ import bluetooth
 
 class Sensor_Node():
     def __init__(self):
-        # ROS node and topic setup
-        rospy.init_node("Sensor_Node", anonymous=False)
+        # ROS topic setup
         rospy.Subscriber("cmd_sensor", String, self.__action)
         self.pub_meas = rospy.Publisher('sensor_meas', sensor_meas, queue_size=1)
         # Bluetooth parameters
@@ -69,10 +68,11 @@ class Sensor_Node():
                 print("Bind BT socket first.")
 
 if __name__ == '__main__':
+    rospy.init_node("Sensor_Node", anonymous=False)
     s = Sensor_Node()
 
     client = None
-    client_created = False
+    client_connected = False
 
     while not rospy.is_shutdown():
         # wait for main to enable bt
@@ -81,11 +81,11 @@ if __name__ == '__main__':
             continue
         # listen, catch errors
         try:
-            # create client once, if not done already
-            if not client_created:
+            # search and connect to client
+            if not client_connected:
                 print("Looking for Sensor...")
                 client, clientInfo = s.sock.accept()
-                client_created = True
+                client_connected = True
                 print("Sensor Connected.")
             # receive data, hangs waiting
             data = client.recv(s.size)
@@ -99,15 +99,16 @@ if __name__ == '__main__':
                 s.pub_meas.publish(msg)
         # errors from board side/connection issues
         except bluetooth.btcommon.BluetoothError as btErr:
-            # if no board, shutdown socket and node
+            # if no board after timeout, shutdown socket and node
             if str(btErr) == "timed out":
                 print("Could not find board!")
                 rospy.signal_shutdown("No board.")
                 continue
-
+            # bt connection error -> re-search for client
             errCode = eval(btErr[0])[0]
-            if client_created:
+            if client_connected:
                 client.close()
-                client_created = False
+                client_connected = False
         except Exception as e:
             print(e)
+            pass
