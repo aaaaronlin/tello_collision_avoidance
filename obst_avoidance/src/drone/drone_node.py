@@ -2,7 +2,7 @@
 import rospy
 from tello import Tello
 from obst_avoidance.msg import telemetry
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Vector3
 from std_msgs.msg import String
 
 # A general ROS Node for communicating with a WiFi drone

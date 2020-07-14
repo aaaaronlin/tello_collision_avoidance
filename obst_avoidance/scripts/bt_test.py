@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import bluetooth
 
 server_address = ''
@@ -13,7 +14,6 @@ try:
         data = client.recv(size)
         if data:
             print(data)
-            client.send(data)  # Echo back to client
 except:
     print("Closing socket")
     client.close()

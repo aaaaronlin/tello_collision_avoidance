@@ -8,7 +8,7 @@ from numpy.linalg import inv
 # General Class
 class SensorFilter(object):
     def __init__(self):
-        self.rejectMeasCountMax = 50  # ~5 sec of bad measurements
+        self.rejectMeasCountMax = 10  # ~1 sec of bad measurements
         self.rejectMeasCount = 0
 
         self.dt = 0.0
@@ -25,8 +25,8 @@ class SimpleKalmanFilter(SensorFilter, object):
         self.X = 2.0
         self.A = 1.0
         self.P = 0.0
-        self.Q = 0.002
-        self.R = 0.005
+        self.Q = 0.0002
+        self.R = 0.002
 
     # reset state estimate and covariance
     def reset(self):
@@ -41,7 +41,7 @@ class SimpleKalmanFilter(SensorFilter, object):
         return self.X, self.P
 
     def update_with_measurement(self, z):
-        # check for bad measurements i.e. too large in case of VL53L0x
+        # check for bad measurements i.e. 8190 return value in case of VL53L0x
         if self.reject_meas(z):
             self.rejectMeasCount += 1
             # a series of bad measurements usually indicates either:

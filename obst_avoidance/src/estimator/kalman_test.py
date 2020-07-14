@@ -7,7 +7,7 @@ import numpy as np
 
 mainDir = os.path.split(os.path.split(sys.path[0])[0])[0]
 bagDir = mainDir + '/bag/'
-filename = "inch.pickle"
+filename = "1.4.pickle"
 
 pickleFile = open(bagDir+filename, 'rb')
 data, fname = pickle.load(pickleFile)
@@ -19,7 +19,7 @@ est = data['/est']
 fig = plt.figure()
 
 fig.suptitle(fname)
-n = 4      # num sub-plots
+n = 5      # num sub-plots
 fig.add_subplot(n, 1, 1)
 for i in range(2, n + 1):
     fig.add_subplot(n, 1, i, sharex=fig.axes[0])
@@ -41,14 +41,19 @@ for i, m in np.ndenumerate(meas['meas'][:, 0]*0.001):
     p_arr[i] = p
     k_arr[i] = k
 
-fig.axes[1].plot(est['t'], est['dist'][:, 0], label='est_dist')
+fig.axes[1].plot(meas['t'], x_arr, label='test_dist')
+fig.axes[1].plot(meas['t'], meas['meas'][:, 0]*0.001, label='raw_dist')
 fig.axes[1].set_ylim([0, 2])
 fig.axes[1].legend()
 
-fig.axes[2].plot(est['t'], est['covariance'][:, 0], label='est_cov')
+fig.axes[2].plot(meas['t'], x_arr, label='test_dist')
+fig.axes[2].set_ylim([0, 2])
 fig.axes[2].legend()
 
-fig.axes[3].plot(est['t'], est['k'], label='est_k')
+fig.axes[3].plot(meas['t'], p_arr, label='test_cov')
 fig.axes[3].legend()
+
+fig.axes[4].plot(meas['t'], k_arr, label='test_k')
+fig.axes[4].legend()
 
 plt.show()
