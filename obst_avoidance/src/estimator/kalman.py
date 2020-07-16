@@ -9,29 +9,30 @@ from numpy.linalg import inv
 class SensorFilter(object):
     def __init__(self):
         self.rejectMeasCountMax = 10  # ~1 sec of bad measurements
-        self.rejectMeasCount = 0
-
         self.dt = 0.0
 
     @staticmethod
     def reject_meas(z):
-        if z >= 2.000 or z < .020:  # 1200 mm and 20 mm bounds
+        if z > 2.000 or z < .020:  # 2000 mm and 20 mm bounds
             return True
 
-# 1D Kalman for a single TOF sensor
+# n-d Kalman for TOF sensors
 class SimpleKalmanFilter(SensorFilter, object):
-    def __init__(self):
+    def __init__(self, X=2.0):
         super(SimpleKalmanFilter, self).__init__()
-        self.X = 2.0
+        self.X = X
+        self.X0 = X
         self.A = 1.0
         self.P = 0.0
         self.Q = 0.0002
         self.R = 0.002
 
-    # reset state estimate and covariance
+        self.rejectMeasCount = 0
+
+    # reset state estimate and covariance to initial condition
     def reset(self):
-        self.X = 2.0
-        self.P = 0
+        self.X = self.X0
+        self.P = 0.0
 
     def predict(self):
         # next state is just current state
@@ -64,33 +65,36 @@ class SimpleKalmanFilter(SensorFilter, object):
 
 # 4D Kalman incorporating state estimate from IMU
 class KalmanFilter(SensorFilter, object):
-    def __init__(self):
+    def __init__(self, X=np.array([2.0, 2.0, 2.0, 2.0]).T):
         super(KalmanFilter, self).__init__()
         # state
-        # [dist_from_wall_x, dist_from_wall_y, vel_x, vel_y]
-        self.X = np.array([0.0, 0.0, 0.0, 0.0]).T
+        # [dist_from_wall_x, dist_from_wall_y, dist_from_wall_-x, dist_from_wall_-y]
+        self.X = X
+        self.X0 = X
         # create state-transition matrix
         self.A = np.array([[1.0, 0.0, 0.1, 0.0],  # temp dt
                            [0.0, 1.0, 0.0, 0.1],  # temp dt
                            [0.0, 0.0, 1.0, 0.0],
                            [0.0, 0.0, 0.0, 1.0]])
         # process noise cov guess
-        self.P = np.array([[0.1, 0.0, 0.0, 0.0],
-                           [0.0, 0.1, 0.0, 0.0],
-                           [0.0, 0.0, 0.1, 0.0],
-                           [0.0, 0.0, 0.0, 0.1]])
+        self.P = np.zeros((4, 4))
 
         # process noise noise TODO: tune Q
-        self.Q = np.array([[0.05, 0.0, 0.0, 0.0],
-                           [0.0, 0.05, 0.0, 0.0],
-                           [0.0, 0.0, 0.05, 0.0],
-                           [0.0, 0.0, 0.0, 0.05]])
+        self.Q = np.array([[0.0002, 0.0, 0.0, 0.0],
+                           [0.0, 0.0002, 0.0, 0.0],
+                           [0.0, 0.0, 0.0002, 0.0],
+                           [0.0, 0.0, 0.0, 0.0002]])
 
         # meas noise variance TODO: tune R
         self.R = np.array([[0.001, 0.0, 0.0, 0.0],
                            [0.0, 0.001, 0.0, 0.0],
                            [0.0, 0.0, 0.001, 0.0],
                            [0.0, 0.0, 0.0, 0.001]])
+
+    # reset state estimate and covariance
+    def reset(self):
+        self.X = self.X0
+        self.P = np.zeros((4, 4))
 
     def predict(self, dt, velx, vely):
         # update state
@@ -112,7 +116,7 @@ class KalmanFilter(SensorFilter, object):
 
     def update_with_measurement(self, z):
         # calculate H
-        H = np.zeros((4, 1))
+        H = np.ones((4, 1))
         # innovation residual and covariance
         innErr = z - np.dot(H, self.X)
         innCov = np.dot(H, np.dot(self.P, H.T)) + self.R

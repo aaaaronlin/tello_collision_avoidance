@@ -35,25 +35,28 @@ class Main_Node:
 
 # don't need state yet TODO
 def predict(msg):
-    global main, skf, kf
+    global main, skf1, kf, dist, t
     return
-    #
-    # x, p = self.SKF.predict()
-    #
+
+    # dt = rospy.Time.now().secs() - t
+    # x, p = kf.predict(dt, msg.vel[0], msg.vel[1])
+
     # est_msg = estimate()
-    # est_msg.dist[0] = x
-    # est_msg.covariance[0] = p
-    # self.pub_est.publish(est_msg)
+    # est_msg.dist = x
+    # est_msg.covariance = np.ndarray.flatten(p)
+    # main.pub_est.publish(est_msg)
+
+    # t = rospy.Time.now().secs()
 
 
 def update(msg):
-    global main, skf, kf, dist
+    global main, skf1, kf, dist
     # only take first value (1D) for now TODO
     dist[0] = msg.meas[0]*0.001  # raw data comes in mm
 
     # remove after prediction added TODO
-    skf.predict()
-    x, p, k = skf.update_with_measurement(dist[0])
+    skf1.predict()
+    x, p, k = skf1.update_with_measurement(dist[0])
 
     est_msg = estimate()
     est_msg.dist[0] = x
@@ -80,27 +83,32 @@ def initialize():
 
 
 def loop():
-    global main, skf, kf, dist
+    global main, skf1, kf, dist, t
     # control parameters in meters
     dist_ref = np.array([0.8, 0.8, 0.8, 0.8])  # desired position relative to any obstacles
-    dist = np.array([2.0, 2.0, 2.0, 2.0])
+    dist = np.array([2.0, 2.0, 2.0, 2.0])  # initial condition
     free_dist = np.array([1.5, 1.5, 1.5, 1.5])  # free area
     danger_dist = np.array([0.3, 0.3, 0.3, 0.3])
     # init estimators TODO add other axis
-    skf = SimpleKalmanFilter()
-    kf = KalmanFilter()
+    skf1 = SimpleKalmanFilter(dist[0])
+    kf = KalmanFilter(dist)
     # init controllers TODO add other axis
     ctrl_1 = PID(kp=1.6, ki=0.0, kd=0.0)
+    ctrl_2 = PID(kp=1.6, ki=0.0, kd=0.0)
 
-    skf.reset()
+    skf1.reset()
+    kf.reset()
     ctrl_1.reset()
+    ctrl_2.reset()
 
     rate = rospy.Rate(10)  # Hz
 
     main.send_drone_act("takeoff")
 
+    # start kalman if data available
     rospy.Subscriber('telemetry', telemetry, predict)
     rospy.Subscriber('sensor_meas', sensor_meas, update)
+    t = rospy.Time.now().secs()
 
     while not rospy.is_shutdown():
         if dist[0] > free_dist[0]:  # further than 1.0 m away from a target distance
@@ -108,7 +116,8 @@ def loop():
         elif dist[0] > danger_dist:
             k_1 = -ctrl_1.run(dist[0], dist_ref[0])
         else:
-            k_1 = -1.0  # max reverse
+            k_1 = -1.0  # max reverse if in danger
+
 
         main.send_drone_cmd([k_1, 0, 0, 0])
 
