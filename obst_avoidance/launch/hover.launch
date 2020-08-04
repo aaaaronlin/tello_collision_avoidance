@@ -13,6 +13,10 @@
     <param name="bt_port"		type="int"	value="3" />
     <param name="sensor_timeout"	type="double"	value="10.0" />
 
+    <!-- Estimation Parameters -->
+    <param name="use_drone_state"	type="bool"	value="false" />
+
+
     <node name="main" pkg="obst_avoidance" type="main_node.py" output="screen" />
     <node name="drone" pkg="obst_avoidance" type="drone_node.py" output="screen" />
     <node name="sensor" pkg="obst_avoidance" type="sensor_node.py" output="screen" />

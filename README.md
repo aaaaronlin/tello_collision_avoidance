@@ -17,20 +17,21 @@ TODO
 
 
 ```
-
 sudo apt-get update
 sudo apt-get install python-pip python-dev ipython
 
 sudo apt-get install bluetooth libbluetooth-dev
+```
+
+VL53L0x Python Library: https://github.com/johnbryanmoore/VL53L0X_rasp_python
 
 ```
 
-VL53L0x Python Library: https://github.com/pimoroni/VL53L0X_rasp_python
-
-
-```
-
-sudo python2 setup.py install
+sudo apt-get install build-essential python-dev
+cd your_git_directory
+git clone https://github.com/johnbryanmoore/VL53L0X_rasp_python.git
+cd VL53L0X_rasp_python
+make
 
 ```
 
@@ -52,7 +53,6 @@ PyBluez 0.22: https://github.com/pybluez/pybluez
 
 
 ```
-
 mkdir -p ~/catkin_ws_tello/src/
 
 cd ~/catkin_ws_tello/src/
@@ -62,11 +62,10 @@ git clone https://github.com/KhazanahAmericasInc/wifi_drone_avoidance/
 cd ..
 
 catkin build
-
 ```
 
 ## Understanding the ROS package
 
-[rqt_graph](img/rosgraph.png)
+![rqt_graph](img/rosgraph.png)
 
 

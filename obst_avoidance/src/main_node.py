@@ -35,33 +35,39 @@ class Main_Node:
 
 # don't need state yet TODO
 def predict(msg):
-    global main, skf1, kf, dist, t
-    return
+    global main, kf, dist, t
 
-    # dt = rospy.Time.now().secs() - t
-    # x, p = kf.predict(dt, msg.vel[0], msg.vel[1])
+    dt = rospy.Time.now().secs + (rospy.Time.now().nsecs*(10**-9)) - t
+    vel = [msg.vel[0], msg.vel[1], msg.vel[2]]
+    x, p = kf.predict(dt, vel)
 
-    # est_msg = estimate()
-    # est_msg.dist = x
-    # est_msg.covariance = np.ndarray.flatten(p)
-    # main.pub_est.publish(est_msg)
-
-    # t = rospy.Time.now().secs()
-
-
-def update(msg):
-    global main, skf1, kf, dist
-    # only take first value (1D) for now TODO
-    dist[0] = msg.meas[0]*0.001  # raw data comes in mm
-
-    # remove after prediction added TODO
-    skf1.predict()
-    x, p, k = skf1.update_with_measurement(dist[0])
+    dist = x[0:4].tolist()
 
     est_msg = estimate()
-    est_msg.dist[0] = x
-    est_msg.covariance[0] = p
-    est_msg.k = k
+    est_msg.dist = dist
+    est_msg.vel = x[4:7].tolist()
+    est_msg.covariance = np.ndarray.flatten(p).tolist()
+    main.pub_est.publish(est_msg)
+
+    t = rospy.Time.now().secs + (rospy.Time.now().nsecs*(10**-9))
+
+def update(msg):
+    global main, kf, dist, use_drone_state
+    # TODO fix 4th axis (copies right meas to left)
+    dist_raw = np.array([msg.meas[0]*0.001, msg.meas[1]*0.001, msg.meas[1]*0.001, msg.meas[2]*0.001]).T  # raw data comes in mm
+
+    if not use_drone_state:
+        kf.predict_no_drone()
+
+    x, p, k = kf.update_with_measurement(dist_raw)
+
+    dist = x[0:4].tolist()
+
+    est_msg = estimate()
+    est_msg.dist = dist
+    est_msg.vel = x[4:7].tolist()
+    est_msg.covariance = np.ndarray.flatten(p).tolist()
+    est_msg.k = np.ndarray.flatten(k).tolist()
     main.pub_est.publish(est_msg)
 
 
@@ -83,43 +89,42 @@ def initialize():
 
 
 def loop():
-    global main, skf1, kf, dist, t
+    global main, kf, dist, t, use_drone_state
     # control parameters in meters
     dist_ref = np.array([0.8, 0.8, 0.8, 0.8])  # desired position relative to any obstacles
     dist = np.array([2.0, 2.0, 2.0, 2.0])  # initial condition
     free_dist = np.array([1.5, 1.5, 1.5, 1.5])  # free area
     danger_dist = np.array([0.3, 0.3, 0.3, 0.3])
-    # init estimators TODO add other axis
-    skf1 = SimpleKalmanFilter(dist[0])
-    kf = KalmanFilter(dist)
+    # init estimators
+    kf = KalmanFilter(X=np.concatenate((dist, np.array([0.0, 0.0, 0.0]))).T)
     # init controllers TODO add other axis
-    ctrl_1 = PID(kp=1.6, ki=0.0, kd=0.0)
-    ctrl_2 = PID(kp=1.6, ki=0.0, kd=0.0)
+    ctrl_1 = PID(kp=1.6, ki=0.0, kd=0.2)
+    ctrl_2 = PID(kp=1.6, ki=0.0, kd=0.2)
 
-    skf1.reset()
-    kf.reset()
     ctrl_1.reset()
     ctrl_2.reset()
 
     rate = rospy.Rate(10)  # Hz
 
-    main.send_drone_act("takeoff")
+    #main.send_drone_act("takeoff")
 
     # start kalman if data available
-    rospy.Subscriber('telemetry', telemetry, predict)
+    t = rospy.Time.now().secs + (rospy.Time.now().nsecs*(10**-9))
+    use_drone_state = rospy.get_param('use_drone_state', False)
+    if use_drone_state:
+        rospy.Subscriber('telemetry', telemetry, predict)
+
     rospy.Subscriber('sensor_meas', sensor_meas, update)
-    t = rospy.Time.now().secs()
 
     while not rospy.is_shutdown():
-        if dist[0] > free_dist[0]:  # further than 1.0 m away from a target distance
-            k_1 = 0.0  # just hover
-        elif dist[0] > danger_dist:
-            k_1 = -ctrl_1.run(dist[0], dist_ref[0])
-        else:
-            k_1 = -1.0  # max reverse if in danger
+        #if dist[0] > free_dist[0]:  # further than 1.0 m away from a target distance
+        #    k_1 = 0.0  # just hover
+        #elif dist[0] > danger_dist:
+        #    k_1 = -ctrl_1.run(dist[0], dist_ref[0])
+        #else:
+        #    k_1 = -1.0  # max reverse if in danger
 
-
-        main.send_drone_cmd([k_1, 0, 0, 0])
+        #main.send_drone_cmd([k_1, 0, 0, 0])
 
         rate.sleep()
 

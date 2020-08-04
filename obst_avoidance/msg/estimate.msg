@@ -1,5 +1,4 @@
-float64[2] pos
-float64[2] vel
+float64[3] vel
 float64[4] dist
-float64[16] covariance
-float64 k
+float64[49] covariance
+float64[28] k
