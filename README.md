@@ -23,13 +23,13 @@ sudo apt-get install python-pip python-dev ipython
 sudo apt-get install bluetooth libbluetooth-dev
 ```
 
-VL53L0x Python Library: https://github.com/johnbryanmoore/VL53L0X_rasp_python
+VL53L0x Python Library: https://github.com/pimoroni/VL53L0X_rasp_python
 
 ```
 
 sudo apt-get install build-essential python-dev
 cd your_git_directory
-git clone https://github.com/johnbryanmoore/VL53L0X_rasp_python.git
+git clone https://github.com/pimoroni/VL53L0X_rasp_python.git
 cd VL53L0X_rasp_python
 make
 
@@ -64,8 +64,35 @@ cd ..
 catkin build
 ```
 
-## Understanding the ROS package
+## ROS nodes and topics
 
 ![rqt_graph](img/rosgraph.png)
 
+## Setting up Wireless Communication
 
+### PiZero
+Enable Bluetooth
+Disable WiFi (for interference purposes)
+
+Running a script on startup:
+
+copy /board/sensor_system.py to /Desktop on PiZero
+
+```
+cd
+sudo nano /etc/rc.local
+```
+
+add the line:
+
+```
+python2 /home/pi/Desktop/sensor_system.py &
+```
+
+This will allow the script to run when the PiZero is externally charged by the drone battery.
+
+### PC
+Enable Bluetooth
+Enable WiFi (for drone AP)
+
+## Sensor System Hub + Wiring Diagram
