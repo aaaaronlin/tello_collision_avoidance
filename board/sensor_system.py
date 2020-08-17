@@ -1,11 +1,15 @@
+# Initiliazes four sensors and connects to a bluetooth address
+# If there is a connection, polls and sends measurements from all sensors ~15 Hz
+
 import bluetooth
 import time
 import VL53L0X
 import RPi.GPIO as GPIO
 
-server_address = "94:E9:79:E6:E1:90"
-port = 3
+server_address = # add your PC bluetooth address here
+port = # set port number, should match launch file
 
+# GPIO for each sensor shutdown
 S1_SHDN = 14  # forward
 S2_SHDN = 22  # left
 S3_SHDN = 21  # right
@@ -28,6 +32,9 @@ GPIO.output(S1_SHDN, False)
 GPIO.output(S2_SHDN, False)
 GPIO.output(S3_SHDN, False)
 GPIO.output(S4_SHDN, False)
+
+# The library used cannot assign each device to an arbitrary i2c address, only the default 0x29
+# Thus we initialize each one at a time and change address before initiliazing the next
 
 GPIO.output(S1_SHDN, True)
 time.sleep(0.5)
@@ -63,6 +70,7 @@ s4.open()
 
 connected = False
 ranging = False
+# message count sent to PC
 i = 0
 
 while True:

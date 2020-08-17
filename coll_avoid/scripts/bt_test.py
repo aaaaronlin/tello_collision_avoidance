@@ -1,3 +1,6 @@
+# Test script for raspberry pi + sensor module
+# With the module running, execute this program using: rosrun coll_avoid bt_test.py
+
 #!/usr/bin/env python
 import bluetooth
 

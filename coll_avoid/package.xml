@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>obst_avoidance</name>
+  <name>coll_avoid</name>
   <version>0.0.0</version>
-  <description>The obst_avoidance package</description>
+  <description>The coll_avoid package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

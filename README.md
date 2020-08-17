@@ -7,9 +7,9 @@ The collision avoidance system utilizes multiple VL53L0X TOF sensors connected t
 VL53L0X readings and drone IMU data are fused using a kalman filter.
 A PD controller commands specific velocities to the drone.
 
-## Hardware Information
+## Hardware Assembly
 
-TODO
+https://www.instructables.com/id/VL53L0X-Sensor-System/
 
 ## Setup Packages
 
@@ -100,7 +100,3 @@ This will allow the script to run when the PiZero is externally charged by the d
 ### PC
 Enable Bluetooth
 Enable WiFi (for drone AP)
-
-## Sensor System Hub + Wiring Diagram
-
-https://www.instructables.com/id/VL53L0X-Sensor-System/

@@ -18,16 +18,18 @@ class Main_Node:
         self.avoid_status = False
         self.flight_status = False
 
+    # actions are string commands
     def send_drone_act(self, action):
         msg = String()
         msg.data = action
         self.pub_act.publish(msg)
 
-    def send_sensor_cmd(self, action):
+    def send_sensor_act(self, action):
         msg = String()
         msg.data = action
         self.pub_sensor.publish(msg)
 
+    # command desired linear and angular velocities
     def send_drone_cmd(self, data):
         linear = Vector3(data[0], data[1], data[2])
         angular = Vector3(0.0, 0.0, data[3])
@@ -81,9 +83,9 @@ def start():
     main.send_drone_act("connect")
     # wait for drone connection timeout or connection
     rospy.sleep(7)
-    main.send_sensor_cmd("connect")
+    main.send_sensor_act("connect")
     rospy.sleep(1)
-    main.send_sensor_cmd("start")
+    main.send_sensor_act("start")
     # wait for sensor connection timeout or connection
     rospy.sleep(7)
 

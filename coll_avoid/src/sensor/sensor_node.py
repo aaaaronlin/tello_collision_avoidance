@@ -90,7 +90,7 @@ if __name__ == '__main__':
             # receive data, hangs waiting
             data = client.recv(s.size)
             if data:
-                # [count, d1, d2, d3, d4]
+                # [count, d1, d2, d3, d4], count is ignored for now since there weren't missed messages
                 d = [int(i) for i in data.split(',')]
                 msg = sensor_meas()
                 msg.meas = d[1:5]
