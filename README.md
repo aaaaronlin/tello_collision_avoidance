@@ -1,17 +1,30 @@
 # Collision Avoidance for WiFi Drones
 
-Most drones with collision avoidance incorporate some degree of computer vision and artificial intelligence. This project aims to extend the autonomous and safety capabilities of smaller and more affordable consumer drones (i.e. DJI Tello ~$100) with a lightweight (about 40g), low-cost (about $40) collision avoidance system.
+This project aims to extend the autonomous and safety capabilities of smaller and more affordable consumer drones (i.e. DJI Tello ~$100) with a lightweight (~33g), low-cost (~$30 excluding general tools) collision avoidance system. This is a modular system that can be mounted on any drone as long as either power can be shared between the two or the drone is large enough to carry an external battery for the sensor system.
 
 The collision avoidance system utilizes multiple VL53L0X TOF sensors connected to a Raspberry Pi Zero W. Distance measurements are communicated over Bluetooth to a host computer. Simultaneously, the computer send actuation commands to the drone over its WiFi.
 
-VL53L0X readings and drone IMU data are fused using a kalman filter.
+VL53L0X readings and drone IMU data (optional) are fused using a kalman filter.
 A PD controller commands specific velocities to the drone.
 
-## Hardware Assembly
+## Tradeoffs
+
+The Tello+battery weighs around 86g. With a 33g increase and extra power consumption from the sensor system, flight time was decreased from ~6min to ~3min.
+Control with an external controller has not been been implemented in this package.
+
+## Sensor System
+
+Required tools and hardware as well as assembly:
 
 https://www.instructables.com/id/VL53L0X-Sensor-System/
 
-## Setup Packages
+## Software Used
+
+* Ubuntu 16.04 or 18.04 with ROS Kinetic or ROS Melodic respectively.
+* Python 2.7
+* Raspberry Pi Zero W with Raspbian Stretch
+
+## Setup Software Packages
 
 ### Raspberry Pi:
 
@@ -72,6 +85,21 @@ catkin build
 
 ![rqt_graph](img/rosgraph.png)
 
+### Nodes
+
+* `/main` connects to drone and sensor and runs control code using kalman and PID classes
+* `/sensor` connects to PiZero via PyBluez and publishes sensor measurements
+* `/drone` connects to Tello, handles protocol
+
+### Topics
+
+* `/cmd_vel` [geometry_msgs/Twist](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/Twist.html)
+* `/cmd_action` [std_msgs/String](http://docs.ros.org/melodic/api/std_msgs/html/msg/String.html)
+* `/cmd_sensor` [std_msgs/String](http://docs.ros.org/melodic/api/std_msgs/html/msg/String.html)
+* `/sensor_meas` [msg/sensor_meas](https://github.com/aaaaronlin/tello_collision_avoidance/blob/master/coll_avoid/msg/sensor_meas.msg)
+* `/telemetry` [msg/telemetry](https://github.com/aaaaronlin/tello_collision_avoidance/blob/master/coll_avoid/msg/telemetry.msg)
+* `/est` [msg/estimate](https://github.com/aaaaronlin/tello_collision_avoidance/blob/master/coll_avoid/msg/estimate.msg)
+
 ## Setting up Wireless Communication
 
 ### PiZero
@@ -95,7 +123,7 @@ add the line:
 python2 /home/pi/Desktop/sensor_system.py &
 ```
 
-This will allow the script to run when the PiZero is externally charged by the drone battery.
+This will allow the script to run automatically when the PiZero is externally charged by the drone battery.
 
 ### PC
 Enable Bluetooth
