@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from obst_avoidance.msg import sensor_meas
+from coll_avoid.msg import sensor_meas
 from std_msgs.msg import String
 import bluetooth
 

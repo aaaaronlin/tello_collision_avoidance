@@ -23,6 +23,7 @@ class Tello(tello.Tello):
         self.gyro = [0.0, 0.0, 0.0]
         self.q = [0.0, 0.0, 0.0, 0.0]
         self.vel = [0.0, 0.0, 0.0]
+        self.batt = 100.0
         self.recv_t = 0.0
 
         # new data to publish
@@ -46,8 +47,8 @@ class Tello(tello.Tello):
 
             self.new_data = True
 
-        #if event is drone.EVENT_FLIGHT_DATA:
-        #    return
+        if event is drone.EVENT_FLIGHT_DATA:
+            self.batt = data.battery_percentage
 
     def toggle_new_data(self):
         self.new_data = not self.new_data
@@ -57,7 +58,7 @@ class Tello(tello.Tello):
     #
     # connect to drone socket
     def drone_connect(self):
-        #self.subscribe(self.EVENT_FLIGHT_DATA, self.update_state)
+        self.subscribe(self.EVENT_FLIGHT_DATA, self.update_state)
         self.subscribe(self.EVENT_LOG_DATA, self.update_state)
 
         self.connect()

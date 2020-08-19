@@ -2,7 +2,7 @@
 
     <!-- General Parameters -->
     <arg name="record_bag"      default="true" />
-    <arg name="bag_path"      default="$(find obst_avoidance)/bag/" />
+    <arg name="bag_path"      default="$(find coll_avoid)/bag/" />
 
     <!-- Drone WiFi UDP -->
     <param name="drone_ip"	type="string"	value="192.168.0.1" />

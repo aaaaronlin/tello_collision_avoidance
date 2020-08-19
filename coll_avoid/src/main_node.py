@@ -2,7 +2,7 @@
 import rospy
 from geometry_msgs.msg import Twist, Vector3
 from std_msgs.msg import String
-from obst_avoidance.msg import estimate, sensor_meas, telemetry
+from coll_avoid.msg import estimate, sensor_meas, telemetry
 from estimator.kalman import SimpleKalmanFilter, KalmanFilter
 from controller.PID import PID
 import numpy as np
@@ -95,14 +95,14 @@ def loop():
     # control parameters in meters
     dist_ref = np.array([0.8, 0.8, 0.8, 0.8])  # desired position relative to any obstacles
     dist = np.array([2.0, 2.0, 2.0, 2.0])  # initial condition
-    free_dist = np.array([1.0, 1.0, 1.0, 1.0])  # free area
+    free_dist = np.array([1.3, 1.3, 1.3, 1.0])  # free area
     danger_dist = np.array([0.2, 0.2, 0.2, 0.2])
     # init estimators
     kf = KalmanFilter(X=np.concatenate((dist, np.array([0.0, 0.0, 0.0]))).T)
     # init controllers TODO add other axis
-    ctrl_1 = PID(kp=1.2, ki=0.0, kd=0.1)
-    ctrl_2 = PID(kp=1.2, ki=0.0, kd=0.1)
-    ctrl_3 = PID(kp=1.2, ki=0.0, kd=0.1)
+    ctrl_1 = PID(kp=0.8, ki=0.0, kd=0.1)
+    ctrl_2 = PID(kp=0.8, ki=0.0, kd=0.1)
+    ctrl_3 = PID(kp=1.1, ki=0.0, kd=0.1)
 
     ctrl_1.reset()
     ctrl_2.reset()

@@ -8,7 +8,8 @@ from numpy.linalg import inv
 # General Class
 class SensorFilter(object):
     def __init__(self):
-        self.rejectMeasCountMax = 10  # ~1 sec of bad measurements
+        self.rejectMeasCountMax = 5  # ~1 sec of bad measurements
+        self.maxDist = 2.0  # maximum acceptable value from sensor in meters
 
     @staticmethod
     def reject_meas(z):
@@ -75,16 +76,16 @@ class KalmanFilter(SensorFilter, object):
         self.P = np.zeros((7, 7))
         # process noise
         self.Q = np.zeros((7, 7))
-        self.sigma = 0.01
+        self.sigma = 0.001
         # meas noise variance
         self.R = np.eye(4)*0.002
 
         # bad meas
-        self.rejectMeasCount = [0, 0, 0, 0]
+        self.rejectMeasCount = np.array([0, 0, 0, 0])
 
     # reset state estimate and covariance
     def reset(self, axis):
-        self.X[axis] = 2.0
+        self.X[axis] = self.maxDist
         self.P[axis, axis] = 0
 
     def predict_no_drone(self):
@@ -97,7 +98,20 @@ class KalmanFilter(SensorFilter, object):
 
     def predict(self, dt, vel):
         # update state transition
-        self.A[0, 4], self.A[1, 5], self.A[2, 5], self.A[3, 6] = dt, dt, -dt, dt
+
+        # if last measurement is outside or "too small" of max distance range, do not integrate velocity
+        self.A = np.eye(7)
+        for i, rejectVal in enumerate(self.rejectMeasCount):
+            if rejectVal == 0:
+                if i == 0:
+                    self.A[0, 4] = -dt
+                elif i == 1:
+                    self.A[1, 5] = dt
+                elif i == 2:
+                    self.A[2, 5] = -dt
+                else:
+                    self.A[3, 6] = -dt
+
         self.X[4] = vel[0]
         self.X[5] = vel[1]
         self.X[6] = vel[2]
@@ -106,7 +120,7 @@ class KalmanFilter(SensorFilter, object):
         self.X = np.dot(self.A, self.X)
 
         G = np.array([dt**2/2, dt**2/2, dt**2/2, dt**2/2, dt, dt, dt]).T
-        self.Q = G*G.T*self.sigma**2  # TODO: tune sigma
+        self.Q = G*G.T*self.sigma**2
 
         self.P = np.dot(self.A, np.dot(self.P, self.A.T)) + self.Q
 
@@ -117,7 +131,7 @@ class KalmanFilter(SensorFilter, object):
             # check for bad measurements i.e. 8190 return value in case of VL53L0x
             if self.reject_meas(meas):
                 # use max dist
-                z[i] = 2.0
+                z[i] = self.maxDist
                 self.rejectMeasCount[i] += 1
                 # a series of bad measurements usually indicates either:
                 # reflective/transparent surfaces or not near any walls

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from tello import Tello
-from obst_avoidance.msg import telemetry
+from coll_avoid.msg import telemetry
 from geometry_msgs.msg import Twist, Vector3
 from std_msgs.msg import String
 
@@ -74,6 +74,7 @@ class Drone_Node:
 		msg.gyro = self.d.gyro
 		msg.q = self.d.q
 		msg.vel = self.d.vel
+		msg.batt = self.d.batt
 		try:
 			self.pub_tel.publish(msg)
 		except Exception as e:
