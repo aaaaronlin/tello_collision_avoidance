@@ -1,8 +1,8 @@
 # Collision Avoidance for WiFi Drones
 
-![final design](img/drone.jpg)
+This project aims to extend the autonomous and safety capabilities of smaller and more affordable consumer drones (i.e. DJI Tello $120) with a lightweight (33g), low-cost ($30 excluding general tools) collision avoidance system. This is a modular system that can be mounted on any drone as long as either power can be shared between the two or the drone is large enough to carry an external battery for the sensor system.
 
-This project aims to extend the autonomous and safety capabilities of smaller and more affordable consumer drones (i.e. DJI Tello ~$100) with a lightweight (~33g), low-cost (~$30 excluding general tools) collision avoidance system. This is a modular system that can be mounted on any drone as long as either power can be shared between the two or the drone is large enough to carry an external battery for the sensor system.
+![final design](img/drone.jpg)
 
 The collision avoidance system utilizes multiple VL53L0X TOF sensors connected to a Raspberry Pi Zero W. Distance measurements are communicated over Bluetooth to a host computer. Simultaneously, the computer send actuation commands to the drone over its WiFi.
 
@@ -13,6 +13,12 @@ A PD controller commands specific velocities to the drone.
 
 The Tello+battery weighs around 86g. With a 33g increase and extra power consumption from the sensor system, flight time by about 50%.
 Control with an external controller has not been been implemented in this package.
+
+### Limitations
+
+Control of a WiFi drone is limited both by the hardware provided by the drone manufacturer. The Tellopy library enables access to setting desired YPR, but internal actuation is relatively unknown.
+Sending messages to and from a WiFi drone occurs at a much lower frequency (about 10 Hz) than typical. This low frequency also applies to the sensors.
+Since estimation and control is processed offboard on the PC, there are considerable delays in actuation. Thus the WiFi drone's reaction will not be comparable to hobby drones with onboard estimation and control.
 
 ## ROS nodes and topics
 
@@ -50,6 +56,7 @@ Tools, hardware, and instructions: https://www.instructables.com/id/VL53L0X-Sens
 
 ### Raspberry Pi:
 
+Run the following code in the terminal:
 
 ```
 sudo apt-get update
@@ -77,9 +84,7 @@ sudo pip install pybluez=0.22
 
 ### Linux PC:
 
-ROS Kinetic (for Ubuntu 16.04): http://wiki.ros.org/kinetic/Installation/Ubuntu
-
-ROS Melodic (for Ubuntu 18.04): http://wiki.ros.org/melodic/Installation/Ubuntu
+ROS Kinetic (for Ubuntu 16.04): http://wiki.ros.org/kinetic/Installation/Ubuntu OR ROS Melodic (for Ubuntu 18.04): http://wiki.ros.org/melodic/Installation/Ubuntu
 
 Tellopy (build from source): https://github.com/hanyazou/TelloPy
 
@@ -117,9 +122,14 @@ Disable WiFi (for interference purposes)
 
 Running a script on startup:
 
-copy /board/sensor_system.py to /Desktop on PiZero
+```
+cd
 
-change the bluetooth address to your PC address, as well as GPIO pins used
+git clone https://github.com/aaaaronlin/tello_collision_avoidance/
+
+```
+
+In the file, /board/sensor_system.py, change the bluetooth address to your PC address, as well as GPIO pins used
 
 ```
 cd
@@ -129,7 +139,7 @@ sudo nano /etc/rc.local
 add the line:
 
 ```
-python2 /home/pi/Desktop/sensor_system.py &
+python2 /home/pi/tello_collision_avoidance/board/sensor_system.py &
 ```
 
 This will allow the script to run automatically when the PiZero is externally charged by the drone battery.
